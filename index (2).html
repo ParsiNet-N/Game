@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎯 بازی فوق‌حرفه‌ای حدس عدد</title>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v33.003/Vazir-font-face.css" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-light: #f2f2f7;
+      --bg-dark: #0e0e12;
+      --text-light: #111;
+      --text-dark: #f1f1f1;
+      --card-light: #ffffff;
+      --card-dark: #1e1e26;
+      --accent: #6c5ce7;
+      --danger: #d63031;
+      --success: #00b894;
+      --warning: #fdcb6e;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Vazir', sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg-light);
+      color: var(--text-light);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      direction: rtl;
+    }
+
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    .game-box {
+      background: var(--card-light);
+      padding: 2rem;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 520px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    }
+
+    body.dark .game-box {
+      background: var(--card-dark);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .tagline {
+      text-align: center;
+      font-size: 0.95rem;
+      color: gray;
+      margin-bottom: 1.5rem;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      background: #ececec;
+      margin-bottom: 1rem;
+    }
+
+    body.dark input[type="number"] {
+      background: #2f2f38;
+      color: white;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+
+    button {
+      flex: 1;
+      padding: 0.9rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .btn-guess {
+      background: var(--accent);
+    }
+
+    .btn-reset {
+      background: var(--danger);
+    }
+
+    .btn-theme {
+      background: gray;
+    }
+
+    .result {
+      min-height: 40px;
+      font-size: 1.1rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .correct { color: var(--success); }
+    .error { color: var(--danger); }
+    .hint { color: var(--warning); }
+
+    .history {
+      background: rgba(0,0,0,0.05);
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+    }
+
+    body.dark .history {
+      background: rgba(255,255,255,0.07);
+    }
+
+    .timer {
+      text-align: center;
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.75rem;
+      margin-top: 1.2rem;
+      color: gray;
+    }
+
+    .donate-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #0984e3;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 0.9rem;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+
+    .donate-button:hover {
+      background: #74b9ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-box">
+    <h1>بازی فوق‌حرفه‌ای حدس عدد 🎯</h1>
+    <p class="tagline">یه عدد بین ۱ تا ۱۰۰ انتخاب کردم، ببین چندتا حدس لازم داری تا پیداش کنی...</p>
+    <input type="number" id="guess" placeholder="عددی وارد کن..." />
+    <div class="buttons">
+      <button class="btn-guess" onclick="checkGuess()">حدس بزن</button>
+      <button class="btn-reset" onclick="resetGame()">ریست 🔁</button>
+      <button class="btn-theme" onclick="toggleTheme()">🌓 تم</button>
+    </div>
+    <div class="timer" id="timer">⏱ زمان: 0 ثانیه</div>
+    <div class="result" id="message"></div>
+    <div class="history" id="history">📜 تاریخچه حدس‌ها: هنوز حدسی ثبت نشده.</div>
+    <div class="footer">ساخته‌شده با ذهنی در حد بیل گیتس 😉 توسط نیکان</div>
+  </div>
+
+  <button class="donate-button" onclick="window.open('https://reymit.ir/parsinet', '_blank')">حمایت مالی ❤️</button>
+
+  <script>
+    let secret = Math.floor(Math.random() * 100) + 1;
+    let tries = 0;
+    let history = [];
+    let startTime = Date.now();
+    let interval = setInterval(updateTimer, 1000);
+
+    function checkGuess() {
+      const input = document.getElementById('guess');
+      const msg = document.getElementById('message');
+      const val = parseInt(input.value);
+
+      if (isNaN(val) || val < 1 || val > 100) {
+        msg.className = 'result error';
+        msg.textContent = 'یه عدد بین ۱ تا ۱۰۰ وارد کن!';
+        return;
+      }
+
+      tries++;
+      history.push(val);
+      updateHistory();
+
+      if (val === secret) {
+        clearInterval(interval);
+        msg.className = 'result correct';
+        msg.textContent = `درست گفتی! 👑 تعداد تلاش: ${tries}`;
+      } else if (val < secret) {
+        msg.className = 'result hint';
+        msg.textContent = 'برو بالاتر ⬆️';
+      } else {
+        msg.className = 'result hint';
+        msg.textContent = 'بیا پایین‌تر ⬇️';
+      }
+
+      input.value = '';
+      input.focus();
+    }
+
+    function updateHistory() {
+      const h = document.getElementById('history');
+      h.innerHTML = "📜 تاریخچه حدس‌ها: " + (history.length ? history.join(', ') : 'هیچ حدسی هنوز ثبت نشده.');
+    }
+
+    function resetGame() {
+      secret = Math.floor(Math.random() * 100) + 1;
+      tries = 0;
+      history = [];
+      document.getElementById('message').textContent = '';
+      document.getElementById('guess').value = '';
+      updateHistory();
+      clearInterval(interval);
+      startTime = Date.now();
+      interval = setInterval(updateTimer, 1000);
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+    }
+
+    function updateTimer() {
+      const t = Math.floor((Date.now() - startTime) / 1000);
+      document.getElementById('timer').textContent = `⏱ زمان: ${t} ثانیه`;
+    }
+  </script>
+</body>
+</html>
