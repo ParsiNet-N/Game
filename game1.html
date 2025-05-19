@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>بازی عدد جادویی</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      background-color: #121212;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .game-container {
+      background-color: #1e1e1e;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px #00ffe0;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    input,
+    button {
+      padding: 10px;
+      margin-top: 10px;
+      width: 100%;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+    input {
+      background-color: #2a2a2a;
+      color: white;
+    }
+    button {
+      background-color: #00ffe0;
+      color: black;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .message {
+      margin-top: 15px;
+      min-height: 24px;
+    }
+    .timer {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #ccc;
+    }
+    button.reset {
+      margin-top: 5px;
+      background: #ff0066;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h2>عدد جادویی</h2>
+    <p>حل کن: <span id="equation"></span></p>
+    <input type="number" id="guessInput" placeholder="پاسخ را وارد کنید..." />
+    <button onclick="checkAnswer()">بررسی</button>
+    <button class="reset" onclick="resetGame()">شروع مجدد</button>
+    <div class="message" id="message"></div>
+    <div class="timer" id="timer">زمان: <span id="time">0</span> ثانیه</div>
+  </div>
+
+  <script>
+    let startTime, timerInterval;
+    let answer = 0;
+
+    function generateEquation() {
+      const a = Math.floor(Math.random() * 10 + 1);
+      const b = Math.floor(Math.random() * 10 + 1);
+      const op = ['+', '-', '*'][Math.floor(Math.random() * 3)];
+      answer = eval(`${a} ${op} ${b}`);
+      document.getElementById("equation").innerText = `${a} ${op} ${b}`;
+    }
+
+    function startTimer() {
+      startTime = Date.now();
+      timerInterval = setInterval(() => {
+        const time = Math.floor((Date.now() - startTime) / 1000);
+        document.getElementById("time").innerText = time;
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    function checkAnswer() {
+      const guess = parseInt(document.getElementById("guessInput").value);
+      const message = document.getElementById("message");
+
+      if (guess === answer) {
+        stopTimer();
+        message.style.color = 'lightgreen';
+        message.innerText = "درست حدس زدی! عدد جادویی همین بود.";
+      } else {
+        message.style.color = 'orange';
+        message.innerText = "اشتباهه! دوباره تلاش کن.";
+      }
+    }
+
+    function resetGame() {
+      generateEquation();
+      startTimer();
+      document.getElementById("guessInput").value = "";
+      document.getElementById("message").innerText = "";
+      document.getElementById("time").innerText = "0";
+    }
+
+    window.onload = () => {
+      generateEquation();
+      startTimer();
+    };
+  </script>
+</body>
+</html>
